@@ -177,7 +177,9 @@ void Solver::solve()
     printf("Automatically choosing minimum length: %d\n", minLength);
 #else
     // TODO: come up with a clever way to choose a minLength
-    int minLength = 3;
+    int minLength = (queryLength >> 1) - 3;
+    if(minLength < 3)
+        minLength = 3;
 #endif
 
     printf("Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
