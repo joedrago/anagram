@@ -71,7 +71,7 @@ inline bool Solver::queryContains(const std::string &word)
 
 bool Solver::seed(const std::string &filename)
 {
-    std::ifstream f(filename);
+    std::ifstream f(filename.c_str());
     if(!f) {
         return false;
     }
