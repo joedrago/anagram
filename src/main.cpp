@@ -11,7 +11,7 @@ typedef std::vector<WordScore> WordScoreList;
 class Solver
 {
 public:
-    Solver(int minLength, int maxLength, const std::string &query);
+    Solver(const std::string &query);
     ~Solver();
 
     inline bool queryContains(const std::string &word);
@@ -20,28 +20,25 @@ public:
 
     std::string sanitize(const std::string &word);
 
-    void dump();
-    void permute(int length);
+    void dump(bool dumpWords = false);
+    int permute(int length, int minLength, bool estimateIterations = false);
     void solve();
 
 protected:
-    int minLength_;
     int maxLength_;
     std::string query_;
     std::string sortedQuery_;
     std::vector<WordScoreMap> scores_;
 };
 
-Solver::Solver(int minLength, int maxLength, const std::string &query)
-: minLength_(minLength)
-, maxLength_(maxLength)
-, query_(query)
+Solver::Solver(const std::string &query)
+: query_(query)
 {
+    sortedQuery_ = sanitize(query_);
+    maxLength_ = (int)sortedQuery_.size();
     for(int i = 0; i <= maxLength_; ++i) {
         scores_.push_back(WordScoreMap());
     }
-
-    sortedQuery_ = sanitize(query_);
 }
 
 Solver::~Solver()
@@ -82,7 +79,7 @@ bool Solver::seed(const std::string &filename)
     std::string word;
     while(std::getline(f, word)) {
         int length = (int)word.size();
-        if((length < minLength_) || (length > maxLength_))
+        if(length > maxLength_)
             continue;
         if(!queryContains(word))
             continue;
@@ -101,11 +98,16 @@ std::string Solver::sanitize(const std::string &word)
     return sortedWord;
 }
 
-void Solver::dump()
+void Solver::dump(bool dumpWords)
 {
     printf("Current word list counts:\n");
     for(int i = 0; i <= maxLength_; ++i) {
         printf("* Scores[%d]: %d\n", i, (int)scores_[i].size());
+        if(dumpWords) {
+            for(WordScoreMap::iterator it = scores_[i].begin(); it != scores_[i].end(); ++it) {
+                printf("  * %s\n", it->first.c_str());
+            }
+        }
     }
 }
 
@@ -118,9 +120,10 @@ static bool sortScores(WordScore a, WordScore b)
     return (b.second < a.second);
 }
 
-void Solver::permute(int length)
+int Solver::permute(int length, int minLength, bool estimateIterations)
 {
-    for(int scores1Length = length - minLength_; scores1Length >= minLength_; --scores1Length) {
+    int iterations = 0;
+    for(int scores1Length = length - minLength; scores1Length >= minLength; --scores1Length) {
         int scores2Length = length - scores1Length;
         if(scores2Length > scores1Length)
             break;
@@ -131,7 +134,12 @@ void Solver::permute(int length)
         if((scores1.size() == 0) || (scores2.size() == 0))
             continue;
 
-        printf("permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
+        iterations += (int)(scores1.size() * scores2.size());
+        if(estimateIterations) {
+            continue;
+        }
+
+        printf("* permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
             length,
             scores1Length,
             scores2Length,
@@ -146,15 +154,43 @@ void Solver::permute(int length)
             }
         }
     }
+    return iterations;
 }
 
 void Solver::solve()
 {
     int queryLength = (int)sortedQuery_.size();
 
-    for(int i = 0; i <= sortedQuery_.size(); ++i) {
-        permute(i);
+#if 0
+    static const int MAX_ITERATIONS = 100000;
+    int minLength = queryLength - 1;
+    for(; minLength > 0; --minLength) {
+        int iterations = 0;
+        for(int i = 0; i <= sortedQuery_.size(); ++i) {
+            iterations += permute(i, minLength, true);
+        }
+        printf("Estimated iterations for min length %d: %d\n", minLength, iterations);
+        if(iterations > MAX_ITERATIONS)
+            break;
     }
+    ++minLength;
+    printf("Automatically choosing minimum length: %d\n", minLength);
+#else
+    // TODO: come up with a clever way to choose a minLength
+    int minLength = 3;
+#endif
+
+    printf("Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
+        query_.c_str(),
+        sortedQuery_.c_str(),
+        minLength,
+        maxLength_);
+
+    int iterations = 0;
+    for(int i = 0; i <= sortedQuery_.size(); ++i) {
+        iterations += permute(i, minLength);
+    }
+    printf("Total iterations: %d\n", iterations);
 
     printf("\nFound %d possible anagrams.\n",
 		(int)scores_[queryLength].size());
@@ -182,11 +218,15 @@ int main(int argc, char *argv[])
     }
 
     std::string query = argv[1];
+    if(query.size() < 1) {
+        return 0;
+    }
 
-    Solver solver(2, (int)query.size(), query);
+    Solver solver(query);
     solver.seed("data/words");
-    solver.dump();
+    // solver.dump(true);
     solver.solve();
+    // solver.dump(true);
 
     return 0;
 }
