@@ -177,7 +177,7 @@ void Solver::solve()
     printf("Automatically choosing minimum length: %d\n", minLength);
 #else
     // TODO: come up with a clever way to choose a minLength
-    int minLength = (queryLength >> 1) - 3;
+    int minLength = (queryLength >> 1) - 2;
     if(minLength < 3)
         minLength = 3;
 #endif
