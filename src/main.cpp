@@ -168,7 +168,7 @@ void Solver::solve()
     // Sort by score so cooler anagrams are first
     std::sort(answers.begin(), answers.end(), sortScores);
 
-    printf("Found %llu answers.\n", answers.size());
+    printf("Found %d answers.\n", (int)answers.size());
     for(WordScoreList::iterator it = answers.begin(); it != answers.end(); ++it) {
         printf(" * %s [score: %d]\n", it->first.c_str(), it->second);
     }
