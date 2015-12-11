@@ -81,7 +81,7 @@ bool Solver::seed(const std::string &filename)
 
     std::string word;
     while(std::getline(f, word)) {
-        int length = word.size();
+        int length = (int)word.size();
         if((length < minLength_) || (length > maxLength_))
             continue;
         if(!queryContains(word))
@@ -105,7 +105,7 @@ void Solver::dump()
 {
     printf("Current word list counts:\n");
     for(int i = 0; i <= maxLength_; ++i) {
-        printf("* Scores[%d]: %zu\n", i, scores_[i].size());
+        printf("* Scores[%d]: %d\n", i, (int)scores_[i].size());
     }
 }
 
@@ -131,13 +131,13 @@ void Solver::permute(int length)
         if((scores1.size() == 0) || (scores2.size() == 0))
             continue;
 
-        printf("permute into list[%d] -> list[%d] x list[%d] = %zu * %zu = %zu combinations\n",
+        printf("permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
             length,
             scores1Length,
             scores2Length,
-            scores1.size(),
-            scores2.size(),
-            scores1.size() * scores2.size());
+            (int)scores1.size(),
+            (int)scores2.size(),
+            (int)(scores1.size() * scores2.size()));
 
         for(WordScoreMap::iterator scores1It = scores1.begin(); scores1It != scores1.end(); ++scores1It) {
             for(WordScoreMap::iterator scores2It = scores2.begin(); scores2It != scores2.end(); ++scores2It) {
@@ -156,8 +156,8 @@ void Solver::solve()
         permute(i);
     }
 
-    printf("\nFound %zu possible anagrams.\n",
-    scores_[queryLength].size());
+    printf("\nFound %d possible anagrams.\n",
+		(int)scores_[queryLength].size());
 
     WordScoreList answers;
     for(WordScoreMap::iterator it = scores_[queryLength].begin(); it != scores_[queryLength].end(); ++it) {
@@ -168,7 +168,7 @@ void Solver::solve()
     // Sort by score so cooler anagrams are first
     std::sort(answers.begin(), answers.end(), sortScores);
 
-    printf("Found %zu answers.\n", answers.size());
+    printf("Found %llu answers.\n", answers.size());
     for(WordScoreList::iterator it = answers.begin(); it != answers.end(); ++it) {
         printf(" * %s [score: %d]\n", it->first.c_str(), it->second);
     }
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 
     std::string query = argv[1];
 
-    Solver solver(2, query.size(), query);
+    Solver solver(2, (int)query.size(), query);
     solver.seed("data/words");
     solver.dump();
     solver.solve();
