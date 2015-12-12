@@ -24,15 +24,19 @@ public:
     int permute(int length, int minLength);
     void solve();
 
+    void forceAll() { forceAll_ = true; }
+
 protected:
     int maxLength_;
     std::string query_;
     std::string sortedQuery_;
     std::vector<WordScoreMap> scores_;
+    bool forceAll_;
 };
 
 Solver::Solver(const std::string &query)
 : query_(query)
+, forceAll_(false)
 {
     sortedQuery_ = sanitize(query_);
     maxLength_ = (int)sortedQuery_.size();
@@ -166,10 +170,13 @@ void Solver::solve()
 {
     int queryLength = (int)sortedQuery_.size();
 
-    // TODO: come up with a clever way to choose a minLength
     int minLength = (queryLength >> 1) - 2;
     if(minLength < 1)
         minLength = 1;
+    if(forceAll_) {
+        fprintf(stderr, "Force all enabled, setting min length to 1.\n");
+        minLength = 1;
+    }
 
     fprintf(stderr, "Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
         query_.c_str(),
@@ -203,21 +210,29 @@ void Solver::solve()
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2) {
-        fprintf(stderr, "Syntax: anagram [letters]\n");
-        return 0;
+    std::string query;
+    bool all = false;
+
+    for(int i = 1; i < argc; ++i) {
+        const char *arg = argv[i];
+        if(!strcmp(arg, "-a")) {
+            all = true;
+        } else {
+            query = arg;
+        }
     }
 
-    std::string query = argv[1];
     if(query.size() < 1) {
+        fprintf(stderr, "Syntax: anagram [-a] [letters]\n");
         return 0;
     }
 
     Solver solver(query);
+    if(all) {
+        solver.forceAll();
+    }
     solver.seed("data/words");
-    // solver.dump(true);
     solver.solve();
-    // solver.dump(true);
 
     return 0;
 }
