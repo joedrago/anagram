@@ -146,7 +146,14 @@ int Solver::permute(int length, int minLength)
 
         for(WordScoreMap::iterator scores1It = scores1.begin(); scores1It != scores1.end(); ++scores1It) {
             for(WordScoreMap::iterator scores2It = scores2.begin(); scores2It != scores2.end(); ++scores2It) {
-                std::string combined = scores1It->first + " " + scores2It->first;
+                // sort the word combos prior to concat to eliminate word combo dupes
+                std::string combined;
+                if(scores1It->first < scores2It->first)
+                    combined = scores1It->first + " " + scores2It->first;
+                else
+                    combined = scores2It->first + " " + scores1It->first;
+
+                // Only add the combo if it could ever be a part an anagram of query_
                 if(queryContains(combined))
                     destScores[combined] = scores1It->second + scores2It->second;
             }
