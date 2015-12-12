@@ -100,12 +100,12 @@ std::string Solver::sanitize(const std::string &word)
 
 void Solver::dump(bool dumpWords)
 {
-    printf("Current word list counts:\n");
+    fprintf(stderr, "Current word list counts:\n");
     for(int i = 0; i <= maxLength_; ++i) {
         printf("* Scores[%d]: %d\n", i, (int)scores_[i].size());
         if(dumpWords) {
             for(WordScoreMap::iterator it = scores_[i].begin(); it != scores_[i].end(); ++it) {
-                printf("  * %s\n", it->first.c_str());
+                fprintf(stderr, "  * %s\n", it->first.c_str());
             }
         }
     }
@@ -136,7 +136,7 @@ int Solver::permute(int length, int minLength)
 
         iterations += (int)(scores1.size() * scores2.size());
 
-        printf("* permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
+        fprintf(stderr, "* permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
             length,
             scores1Length,
             scores2Length,
@@ -164,7 +164,7 @@ void Solver::solve()
     if(minLength < 1)
         minLength = 1;
 
-    printf("Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
+    fprintf(stderr, "Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
         query_.c_str(),
         sortedQuery_.c_str(),
         minLength,
@@ -174,9 +174,9 @@ void Solver::solve()
     for(int i = 0; i <= sortedQuery_.size(); ++i) {
         iterations += permute(i, minLength);
     }
-    printf("Total iterations: %d\n", iterations);
+    fprintf(stderr, "Total iterations: %d\n", iterations);
 
-    printf("\nFound %d possible anagrams.\n",
+    fprintf(stderr, "\nFound %d possible anagrams.\n",
 		(int)scores_[queryLength].size());
 
     WordScoreList answers;
@@ -188,16 +188,16 @@ void Solver::solve()
     // Sort by score so cooler anagrams are first
     std::sort(answers.begin(), answers.end(), sortScores);
 
-    printf("Found %d answers.\n", (int)answers.size());
+    fprintf(stderr, "Found %d answers.\n", (int)answers.size());
     for(WordScoreList::iterator it = answers.begin(); it != answers.end(); ++it) {
-        printf(" * %s [score: %d]\n", it->first.c_str(), it->second);
+        printf("%s\n", it->first.c_str());
     }
 }
 
 int main(int argc, char *argv[])
 {
     if(argc != 2) {
-        printf("Syntax: anagram [letters]\n");
+        fprintf(stderr, "Syntax: anagram [letters]\n");
         return 0;
     }
 
