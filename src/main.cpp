@@ -21,7 +21,7 @@ public:
     std::string sanitize(const std::string &word);
 
     void dump(bool dumpWords = false);
-    int permute(int length, int minLength, bool estimateIterations = false);
+    int permute(int length, int minLength);
     void solve();
 
 protected:
@@ -120,7 +120,7 @@ static bool sortScores(WordScore a, WordScore b)
     return (b.second < a.second);
 }
 
-int Solver::permute(int length, int minLength, bool estimateIterations)
+int Solver::permute(int length, int minLength)
 {
     int iterations = 0;
     for(int scores1Length = length - minLength; scores1Length >= minLength; --scores1Length) {
@@ -135,9 +135,6 @@ int Solver::permute(int length, int minLength, bool estimateIterations)
             continue;
 
         iterations += (int)(scores1.size() * scores2.size());
-        if(estimateIterations) {
-            continue;
-        }
 
         printf("* permute into list[%d] -> list[%d] x list[%d] = %d * %d = %d combinations\n",
             length,
@@ -150,7 +147,8 @@ int Solver::permute(int length, int minLength, bool estimateIterations)
         for(WordScoreMap::iterator scores1It = scores1.begin(); scores1It != scores1.end(); ++scores1It) {
             for(WordScoreMap::iterator scores2It = scores2.begin(); scores2It != scores2.end(); ++scores2It) {
                 std::string combined = scores1It->first + " " + scores2It->first;
-                destScores[combined] = scores1It->second + scores2It->second;
+                if(queryContains(combined))
+                    destScores[combined] = scores1It->second + scores2It->second;
             }
         }
     }
@@ -161,26 +159,10 @@ void Solver::solve()
 {
     int queryLength = (int)sortedQuery_.size();
 
-#if 0
-    static const int MAX_ITERATIONS = 100000;
-    int minLength = queryLength - 1;
-    for(; minLength > 0; --minLength) {
-        int iterations = 0;
-        for(int i = 0; i <= sortedQuery_.size(); ++i) {
-            iterations += permute(i, minLength, true);
-        }
-        printf("Estimated iterations for min length %d: %d\n", minLength, iterations);
-        if(iterations > MAX_ITERATIONS)
-            break;
-    }
-    ++minLength;
-    printf("Automatically choosing minimum length: %d\n", minLength);
-#else
     // TODO: come up with a clever way to choose a minLength
     int minLength = (queryLength >> 1) - 2;
-    if(minLength < 3)
-        minLength = 3;
-#endif
+    if(minLength < 1)
+        minLength = 1;
 
     printf("Finding anagram for word '%s' (letters [%s]), length range [%d-%d].\n",
         query_.c_str(),
