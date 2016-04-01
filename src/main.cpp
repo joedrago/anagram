@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <string.h>
 
 typedef std::pair<std::string, int> WordScore;
 typedef std::map<std::string, int> WordScoreMap;
